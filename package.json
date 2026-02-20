@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@prisma/client": "^7.4.0",
+    "@types/react-scroll": "^1.8.10",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-scroll": "^1.9.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
