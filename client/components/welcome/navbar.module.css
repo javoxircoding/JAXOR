@@ -1,0 +1,229 @@
+.navbar {
+  position: fixed;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1100px;
+  background: var(--secondary-color);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 12px 35px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: var(--shadow);
+  animation: navEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: background 0.4s ease, box-shadow 0.4s ease, border-radius 0.3s ease;
+  cursor: pointer;
+}
+.navLink {
+  text-decoration: none;
+  color: var(--color-grayblue);
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.navLink:hover {
+  color: var(--color-blue);
+}
+
+.mobileLink {
+  text-decoration: none;
+  color: var(--color-grayblue);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.mobileLink:hover {
+  background: rgba(32, 131, 197, 0.08);
+  color: var(--color-blue);
+}
+
+.scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--shadow-hover);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  background: var(--linear);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  z-index: 2;
+}
+
+/* DESKTOP LINKS */
+.navLinks {
+  display: flex;
+  gap: 35px;
+}
+
+.navLinks a {
+  text-decoration: none;
+  color: var(--color-grayblue);
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.navLinks a:hover {
+  color: var(--color-blue);
+}
+
+.navBtn {
+  background: var(--darkblue);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.navBtn:hover {
+  background: var(--color-blue);
+  transform: scale(1.05);
+}
+
+/* BURGER */
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 2;
+}
+
+.burgerLine {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--darkblue);
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.line1Open {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.line2Open {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.line3Open {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* MOBILE MENU */
+.mobileMenu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  padding: 20px;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.1);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.mobileMenu a {
+  text-decoration: none;
+  color: var(--color-grayblue);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.mobileMenu a:hover {
+  background: rgba(32, 131, 197, 0.08);
+  color: var(--color-blue);
+}
+
+.mobileMenu .navBtn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  font-size: 15px;
+}
+
+.mobileMenuOpen {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .navbar {
+    width: 92%;
+    padding: 14px 20px;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .desktopBtn {
+    display: none;
+  }
+
+  .burger {
+    display: flex;
+  }
+
+  .mobileMenu {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .navbar {
+    width: 90%;
+    padding: 12px 24px;
+  }
+
+  .navLinks {
+    gap: 20px;
+  }
+}
+
+@keyframes navEntrance {
+  from {
+    top: -100px;
+    opacity: 0;
+  }
+  to {
+    top: 25px;
+    opacity: 1;
+  }
+}

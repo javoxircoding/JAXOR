@@ -1,0 +1,370 @@
+.features {
+  padding: 150px 80px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #2083c5;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: #0F172A;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.gradient {
+  background: linear-gradient(90deg, #0F172A, #2083c5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 17px;
+  color: #64748b;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  max-width: 1200px;
+  margin: 0 auto;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: 260px;
+  gap: 20px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 32px;
+  padding: 36px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.1);
+  border-color: rgba(32, 131, 197, 0.3);
+}
+
+.salesCard { grid-column: span 7; grid-row: span 2; }
+.stockCard { grid-column: span 5; grid-row: span 1; }
+.logisticsCard { grid-column: span 5; grid-row: span 2; }
+.vaultCard {
+  grid-column: span 7;
+  grid-row: span 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.label {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #2083c5;
+  background: rgba(32, 131, 197, 0.1);
+  padding: 4px 10px;
+  border-radius: 100px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 10px;
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.cardTop { margin-bottom: 24px; }
+
+.svg {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 20px;
+}
+
+.linePath {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: drawLine 2s ease forwards;
+}
+
+.stats {
+  display: flex;
+  gap: 32px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.statNum {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -1px;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.stockIcon {
+  font-size: 32px;
+  margin-bottom: 1px;
+}
+
+.stockBars {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stockRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.stockRow span { width: 50px; }
+
+.barTrack {
+  flex: 1;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 100px;
+  animation: fillBar 1.5s ease forwards;
+}
+
+.high { width: 80%; background: #10b981; }
+.mid { width: 50%; background: #2083c5; }
+.low { width: 20%; background: #f59e0b; }
+
+.mapMock {
+  position: absolute;
+  height: auto;
+  inset: 0;
+  background: linear-gradient(135deg, #f8fafc, #e8f4fd);
+  border-radius: 32px;
+  margin-top: 150px;
+}
+
+.mapDot {
+  position: absolute;
+  font-size: 20px;
+  animation: floating 4s ease-in-out infinite;
+}
+
+.mapPin {
+  position: absolute;
+  font-size: 20px;
+}
+
+.pulse {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(32, 131, 197, 0.2);
+  top: -5px;
+  left: -5px;
+  animation: pulseRing 2s ease-in-out infinite;
+}
+
+.vaultLeft { flex: 1; }
+
+.vaultTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: rgba(32, 131, 197, 0.08);
+  color: #2083c5;
+}
+
+.shieldWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.shieldRing {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid rgba(32, 131, 197, 0.2);
+  animation: pulseRing 3s ease-in-out infinite;
+}
+
+.shieldIcon {
+  font-size: 56px;
+  transition: 0.4s;
+}
+
+.vaultCard:hover .shieldIcon {
+  transform: scale(1.15);
+}
+
+/* ===== ADAPTIVE ===== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .features {
+    padding: 100px 20px;
+  }
+
+  .title {
+    font-size: 38px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: auto;
+  }
+
+  .salesCard { grid-column: span 6; min-height: 320px; }
+  .stockCard { grid-column: span 3; min-height: 260px; }
+  .logisticsCard { grid-column: span 3; min-height: 260px; }
+  .vaultCard { grid-column: span 6; min-height: 200px; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .features {
+    padding: 80px 16px;
+  }
+
+  .title {
+    font-size: 32px;
+    letter-spacing: -1.5px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 16px;
+  }
+
+  .salesCard,
+  .stockCard,
+  .logisticsCard,
+  .vaultCard {
+    grid-column: span 1;
+    min-height: auto;
+  }
+
+  .salesCard { min-height: 320px; }
+  .logisticsCard { min-height: 280px; }
+
+  .vaultCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .shieldWrap {
+    width: 80px;
+    height: 80px;
+  }
+
+  .shieldIcon {
+    font-size: 40px;
+  }
+
+  .stats {
+    gap: 20px;
+  }
+
+  .statNum {
+    font-size: 22px;
+  }
+
+  .card {
+    padding: 24px;
+  }
+}
+
+/* Kichik mobile */
+@media (max-width: 380px) {
+  .title {
+    font-size: 26px;
+  }
+
+  .cardTitle {
+    font-size: 18px;
+  }
+}
+
+/* ANIMATIONS */
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fillBar {
+  from { width: 0; }
+}
+
+@keyframes floating {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulseRing {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
