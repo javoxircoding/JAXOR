@@ -1,9 +1,10 @@
-import Register from "@/components/auth/registr";
+import { Suspense } from 'react'
+import Register from '@/components/auth/registr'
 
 export default function RegisterPage() {
   return (
-    <div>
+    <Suspense fallback={<div>Yuklanmoqda...</div>}>
       <Register />
-    </div>
+    </Suspense>
   )
 }
