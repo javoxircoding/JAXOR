@@ -7,7 +7,7 @@ const Aloqa = () => {
 
         {/* CHAP — Info */}
         <div className={styles.left}>
-          <span className={styles.eyebrow}>Bog'lanish</span>
+          <span className={styles.eyebrow}>Boglanish</span>
           <h2 className={styles.title}>
             Savolingiz bormi? <br />
             <span className={styles.gradient}>Javob beramiz.</span>
