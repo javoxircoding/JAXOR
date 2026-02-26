@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken'
 
 export async function POST(req: NextRequest) {
   try {
-    // Token tekshirish
     const token = req.cookies.get('token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Avtorizatsiya talab qilinadi' }, { status: 401 })
@@ -12,12 +11,11 @@ export async function POST(req: NextRequest) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, storeId: string }
 
-    const { description, address } = await req.json()
+    const { description, address, logoUrl, bannerUrl } = await req.json()
 
-    // Do'konni yangilash
     const store = await prisma.store.update({
       where: { id: decoded.storeId },
-      data: { description, address }
+      data: { description, address, logo: logoUrl, banner: bannerUrl }
     })
 
     return NextResponse.json({ success: true, store })

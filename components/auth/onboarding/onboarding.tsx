@@ -11,6 +11,10 @@ const Onboarding = () => {
   // Step 1
   const [description, setDescription] = useState('')
   const [address, setAddress] = useState('')
+  const [logoPreview, setLogoPreview] = useState('')
+  const [bannerPreview, setBannerPreview] = useState('')
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [bannerFile, setBannerFile] = useState<File | null>(null)
 
   // Step 2
   const [tovarlar, setTovarlar] = useState([{ nom: '', narx: '', tavsif: '' }])
@@ -27,15 +31,49 @@ const Onboarding = () => {
     setTovarlar(yangi)
   }
 
-  // Step 1 ni saqlash
+  // Rasm preview
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setLogoFile(file)
+      setLogoPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setBannerFile(file)
+      setBannerPreview(URL.createObjectURL(file))
+    }
+  }
+
+  // Rasm yuklash
+  const uploadImage = async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    const data = await res.json()
+    return data.url
+  }
+
+  // Step 1 saqlash
   const handleStep1 = async () => {
     setLoading(true)
+    setError('')
     try {
+      let logoUrl = ''
+      let bannerUrl = ''
+
+      if (logoFile) logoUrl = await uploadImage(logoFile)
+      if (bannerFile) bannerUrl = await uploadImage(bannerFile)
+
       await fetch('/api/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description, address })
+        body: JSON.stringify({ description, address, logoUrl, bannerUrl })
       })
+
       setStep(2)
     } catch {
       setError('Xatolik yuz berdi')
@@ -44,9 +82,10 @@ const Onboarding = () => {
     }
   }
 
-  // Step 2 ni saqlash
+  // Step 2 saqlash
   const handleStep2 = async () => {
     setLoading(true)
+    setError('')
     try {
       await fetch('/api/products', {
         method: 'POST',
@@ -64,14 +103,12 @@ const Onboarding = () => {
   return (
     <div className={styles.page}>
 
-      {/* HEADER */}
       <div className={styles.header}>
         <div className={styles.logo}>JAXOR</div>
         <h1 className={styles.title}>Do'koningizni sozlaylik 🎉</h1>
         <p className={styles.subtitle}>Faqat 3 qadam — 2 daqiqa ketadi</p>
       </div>
 
-      {/* STEPS */}
       <div className={styles.steps}>
         <div className={styles.stepItem}>
           <div className={`${styles.stepDot} ${step === 1 ? styles.active : step > 1 ? styles.done : ''}`}>
@@ -101,18 +138,32 @@ const Onboarding = () => {
           <h2 className={styles.cardTitle}>Do'kon sahifasini sozlang</h2>
           <p className={styles.cardSubtitle}>Logo va banner qo'shing — mijozlar buni ko'radi</p>
 
-          <div className={styles.uploadArea}>
-            <input type="file" accept="image/*" className={styles.fileInput} />
-            <div className={styles.uploadIcon}>🏪</div>
-            <div className={styles.uploadTitle}>Logo yuklang</div>
-            <div className={styles.uploadDesc}>PNG, JPG — max 2MB</div>
+          {/* LOGO */}
+          <div className={styles.uploadArea} style={logoPreview ? { padding: '0', border: 'none' } : {}}>
+            <input type="file" accept="image/*" className={styles.fileInput} onChange={handleLogoChange} />
+            {logoPreview ? (
+              <img src={logoPreview} alt="logo" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '20px' }} />
+            ) : (
+              <>
+                <div className={styles.uploadIcon}>🏪</div>
+                <div className={styles.uploadTitle}>Logo yuklang</div>
+                <div className={styles.uploadDesc}>PNG, JPG — max 2MB</div>
+              </>
+            )}
           </div>
 
-          <div className={styles.uploadArea}>
-            <input type="file" accept="image/*" className={styles.fileInput} />
-            <div className={styles.uploadIcon}>🖼️</div>
-            <div className={styles.uploadTitle}>Banner yuklang</div>
-            <div className={styles.uploadDesc}>1200×400px tavsiya etiladi</div>
+          {/* BANNER */}
+          <div className={styles.uploadArea} style={bannerPreview ? { padding: '0', border: 'none' } : {}}>
+            <input type="file" accept="image/*" className={styles.fileInput} onChange={handleBannerChange} />
+            {bannerPreview ? (
+              <img src={bannerPreview} alt="banner" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '20px' }} />
+            ) : (
+              <>
+                <div className={styles.uploadIcon}>🖼️</div>
+                <div className={styles.uploadTitle}>Banner yuklang</div>
+                <div className={styles.uploadDesc}>1200×400px tavsiya etiladi</div>
+              </>
+            )}
           </div>
 
           <div className={styles.inputGroup}>
