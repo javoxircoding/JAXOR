@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import Register from '@/components/auth/registr'
+import Register from '@/components/auth/register'
 
 export default function RegisterPage() {
   return (

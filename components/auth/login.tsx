@@ -1,9 +1,42 @@
 'use client'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './login.module.css'
 
 const Login = () => {
   const router = useRouter()
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Xatolik yuz berdi')
+        return
+      }
+
+      router.push('/dashboard')
+
+    } catch {
+      setError('Internet bilan muammo bor')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className={styles.page}>
@@ -49,13 +82,17 @@ const Login = () => {
           <h2 className={styles.formTitle}>Tizimga kirish</h2>
           <p className={styles.formSubtitle}>Telefon va parolingizni kiriting</p>
 
-          <form onSubmit={(e) => { e.preventDefault(); router.push('/dashboard') }}>
+          {error && <div className={styles.errorBox}>{error}</div>}
+
+          <form onSubmit={handleSubmit}>
             <div className={styles.inputGroup}>
               <label className={styles.label}>Telefon raqam</label>
               <input
                 className={styles.input}
                 type="tel"
                 placeholder="+998 90 000 00 00"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 required
               />
             </div>
@@ -65,13 +102,15 @@ const Login = () => {
                 className={styles.input}
                 type="password"
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 minLength={8}
                 required
               />
             </div>
 
-            <button type="submit" className={styles.btn}>
-              Kirish →
+            <button type="submit" className={styles.btn} disabled={loading}>
+              {loading ? 'Yuklanmoqda...' : 'Kirish →'}
             </button>
           </form>
 

@@ -16,6 +16,54 @@ const Register = () => {
   const searchParams = useSearchParams()
   const plan = searchParams.get('plan') || 'starter'
 
+  // 1. YANGI — forma ma'lumotlarini saqlaymiz
+  const [storeName, setStoreName] = useState('')
+  const [storeType, setStoreType] = useState('')
+  const [phone, setPhone] = useState('')
+  const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  // 2. YANGI — API ga yuborish funksiyasi
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Parollar mos kelishini tekshiramiz
+    if (password !== confirmPassword) {
+      setError('Parollar mos kelmaydi!')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
+    try {
+      // API ga so'rov yuboramiz
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, password, storeName, storeType, plan })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Xatolik yuz berdi')
+        return
+      }
+
+      // Muvaffaqiyatli — onboardingga o'tamiz
+      router.push('/onboarding')
+
+    } catch {
+      setError('Internet bilan muammo bor')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className={styles.page}>
 
@@ -71,7 +119,7 @@ const Register = () => {
             <div className={`${styles.stepDot} ${step === 2 ? styles.active : ''}`}>2</div>
           </div>
 
-          {/* STEP 1 */}
+          {/* STEP 1 — Do'kon ma'lumotlari */}
           {step === 1 && (
             <form onSubmit={(e) => { e.preventDefault(); setStep(2) }}>
               <h2 className={styles.formTitle}>Do'kon ma'lumotlari</h2>
@@ -83,12 +131,19 @@ const Register = () => {
                   className={styles.input}
                   type="text"
                   placeholder="Gagarin Oshxonasi"
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
                   required
                 />
               </div>
               <div className={styles.inputGroup}>
                 <label className={styles.label}>Do'kon turi</label>
-                <select className={styles.input} required>
+                <select
+                  className={styles.input}
+                  value={storeType}
+                  onChange={(e) => setStoreType(e.target.value)}
+                  required
+                >
                   <option value="">Tanlang...</option>
                   <option>Kafe / Oshxona</option>
                   <option>Market / Do'kon</option>
@@ -103,6 +158,8 @@ const Register = () => {
                   className={styles.input}
                   type="tel"
                   placeholder="+998 90 000 00 00"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   required
                 />
               </div>
@@ -113,11 +170,16 @@ const Register = () => {
             </form>
           )}
 
-          {/* STEP 2 */}
+          {/* STEP 2 — Akkaunt */}
           {step === 2 && (
-            <form onSubmit={(e) => { e.preventDefault() }}>
+            <form onSubmit={handleSubmit}>
               <h2 className={styles.formTitle}>Akkaunt yarating</h2>
               <p className={styles.formSubtitle}>Kirish ma'lumotlaringizni kiriting</p>
+
+              {/* Xato xabari */}
+              {error && (
+                <div className={styles.errorBox}>{error}</div>
+              )}
 
               <div className={styles.inputGroup}>
                 <label className={styles.label}>Ism Familiya</label>
@@ -125,6 +187,8 @@ const Register = () => {
                   className={styles.input}
                   type="text"
                   placeholder="Javohir Hamidjanov"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
                 />
               </div>
@@ -134,6 +198,8 @@ const Register = () => {
                   className={styles.input}
                   type="password"
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   minLength={8}
                   required
                 />
@@ -144,6 +210,8 @@ const Register = () => {
                   className={styles.input}
                   type="password"
                   placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   minLength={8}
                   required
                 />
@@ -157,8 +225,12 @@ const Register = () => {
                 >
                   ← Orqaga
                 </button>
-                <button type="submit" className={styles.btn}>
-                  Ro'yxatdan o'tish ✓
+                <button
+                  type="submit"
+                  className={styles.btn}
+                  disabled={loading}
+                >
+                  {loading ? 'Yuklanmoqda...' : "Ro'yxatdan o'tish ✓"}
                 </button>
               </div>
 

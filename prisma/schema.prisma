@@ -1,14 +1,90 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// FOYDALANUVCHI
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  password  String
+  role      Role     @default(VENDOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  store     Store?
+}
+
+// DO'KON
+model Store {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  type        String
+  description String?
+  address     String?
+  logo        String?
+  banner      String?
+  plan        Plan     @default(STARTER)
+  status      Status   @default(TRIAL)
+  trialEndsAt DateTime @default(dbgenerated("NOW() + INTERVAL '14 days'"))
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ownerId     String   @unique
+  owner       User     @relation(fields: [ownerId], references: [id])
+  products    Product[]
+  orders      Order[]
+}
+
+// TOVAR
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  image       String?
+  createdAt   DateTime @default(now())
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id])
+}
+
+// BUYURTMA
+model Order {
+  id        String      @id @default(cuid())
+  status    OrderStatus @default(NEW)
+  total     Float
+  createdAt DateTime    @default(now())
+  storeId   String
+  store     Store       @relation(fields: [storeId], references: [id])
+}
+
+enum Role {
+  VENDOR
+  SUPER_ADMIN
+}
+
+enum Plan {
+  STARTER
+  STANDART
+  PRO
+}
+
+enum Status {
+  TRIAL
+  ACTIVE
+  BLOCKED
+}
+
+enum OrderStatus {
+  NEW
+  PREPARING
+  DELIVERY
+  DONE
+  CANCELLED
 }
