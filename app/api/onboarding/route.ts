@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
+export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
