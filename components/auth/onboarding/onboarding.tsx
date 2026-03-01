@@ -201,8 +201,23 @@ const Onboarding = () => {
           <p className={styles.cardSubtitle}>Kamida 1 ta tovar qo'shing — keyinchalik ko'paytirasiz</p>
 
           {tovarlar.map((tovar, i) => (
+            
             <div key={i} className={styles.tovarBox}>
               <div className={styles.tovarGrid}>
+
+                <div className={styles.tovarLogo} style={logoPreview ? { padding: '0', border: 'none' } : {}}>
+                    <input type="file" accept="image/*" className={styles.fileInput} onChange={handleLogoChange} />
+                    {logoPreview ? (
+                    <img src={logoPreview} alt="Tovar logosi" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }} />
+                    ) : (
+                  <>
+                  <div className={styles.uploadIcon}><img src="/cutlery.png" alt="logo" /></div>
+                  <div className={styles.uploadTitle}>Tovar logosi</div>
+                  <div className={styles.uploadDesc}>PNG, JPG — max 2MB</div>
+                </>
+                )}
+                </div>
+
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>Tovar nomi</label>
                   <input
@@ -213,6 +228,7 @@ const Onboarding = () => {
                     onChange={(e) => updateTovar(i, 'nom', e.target.value)}
                   />
                 </div>
+                
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>Narxi (so'm)</label>
                   <input

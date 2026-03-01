@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
 
     const { products } = await req.json()
 
-    // Bo'sh tovarlarni filtrlash
-    const validProducts = products.filter((p: { nom: string, narx: string, tavsif: string }) =>
+    // Bo'sh tovarlarni filtrlash (nom, narx va rasm borligini tekshiramiz)
+    const validProducts = products.filter((p: { nom: string, narx: string, image?: string }) => 
       p.nom.trim() !== '' && p.narx !== ''
     )
 
@@ -26,10 +26,11 @@ export async function POST(req: NextRequest) {
 
     // Tovarlarni saqlash
     await prisma.product.createMany({
-      data: validProducts.map((p: { nom: string, narx: string, tavsif: string }) => ({
+      data: validProducts.map((p: { nom: string, narx: string, tavsif: string, image?: string }) => ({
         name: p.nom,
         price: parseFloat(p.narx),
         description: p.tavsif,
+        image: p.image || '', // <--- Mana bu yerda rasm URL manzilini bazaga yuboramiz
         storeId: decoded.storeId,
       }))
     })
@@ -38,6 +39,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('PRODUCTS ERROR:', error)
-    return NextResponse.json({ error: String(error) }, { status: 500 })
+    return NextResponse.json({ error: 'Xatolik yuz berdi' }, { status: 500 })
   }
 }
