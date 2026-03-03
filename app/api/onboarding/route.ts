@@ -12,23 +12,10 @@ export async function POST(req: NextRequest) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, storeId: string }
 
-    // storeId token da yo'q bo'lsa — userId orqali topamiz
-    let storeId = decoded.storeId
-    if (!storeId) {
-      const store = await prisma.store.findUnique({
-        where: { ownerId: decoded.userId }
-      })
-      storeId = store?.id || ''
-    }
-
-    if (!storeId) {
-      return NextResponse.json({ error: 'Do\'kon topilmadi' }, { status: 404 })
-    }
-
     const { description, address, logoUrl, bannerUrl } = await req.json()
 
     const store = await prisma.store.update({
-      where: { id: storeId },
+      where: { id: decoded.storeId },
       data: { description, address, logo: logoUrl, banner: bannerUrl }
     })
 

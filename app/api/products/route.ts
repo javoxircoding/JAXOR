@@ -5,6 +5,7 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
+    // Token tekshirish
     const token = req.cookies.get('token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Avtorizatsiya talab qilinadi' }, { status: 401 })
@@ -12,22 +13,10 @@ export async function POST(req: NextRequest) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, storeId: string }
 
-    // storeId token da yo'q bo'lsa — userId orqali topamiz
-    let storeId = decoded.storeId
-    if (!storeId) {
-      const store = await prisma.store.findUnique({
-        where: { ownerId: decoded.userId }
-      })
-      storeId = store?.id || ''
-    }
-
-    if (!storeId) {
-      return NextResponse.json({ error: "Do'kon topilmadi" }, { status: 404 })
-    }
-
     const { products } = await req.json()
 
-    const validProducts = products.filter((p: { nom: string, narx: string, image?: string }) =>
+    // Bo'sh tovarlarni filtrlash
+    const validProducts = products.filter((p: { nom: string, narx: string, tavsif: string }) =>
       p.nom.trim() !== '' && p.narx !== ''
     )
 
@@ -35,13 +24,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Kamida 1 ta tovar kiriting' }, { status: 400 })
     }
 
+    // Tovarlarni saqlash
     await prisma.product.createMany({
-      data: validProducts.map((p: { nom: string, narx: string, tavsif: string, image?: string }) => ({
+      data: validProducts.map((p: { nom: string, narx: string, tavsif: string }) => ({
         name: p.nom,
         price: parseFloat(p.narx),
         description: p.tavsif,
-        image: p.image || '',
-        storeId: storeId,
+        storeId: decoded.storeId,
       }))
     })
 
