@@ -5,7 +5,6 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    // Token tekshirish
     const token = req.cookies.get('token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Avtorizatsiya talab qilinadi' }, { status: 401 })
@@ -13,10 +12,22 @@ export async function POST(req: NextRequest) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, storeId: string }
 
+    // storeId token da yo'q bo'lsa — userId orqali topamiz
+    let storeId = decoded.storeId
+    if (!storeId) {
+      const store = await prisma.store.findUnique({
+        where: { ownerId: decoded.userId }
+      })
+      storeId = store?.id || ''
+    }
+
+    if (!storeId) {
+      return NextResponse.json({ error: "Do'kon topilmadi" }, { status: 404 })
+    }
+
     const { products } = await req.json()
 
-    // Bo'sh tovarlarni filtrlash (nom, narx va rasm borligini tekshiramiz)
-    const validProducts = products.filter((p: { nom: string, narx: string, image?: string }) => 
+    const validProducts = products.filter((p: { nom: string, narx: string, image?: string }) =>
       p.nom.trim() !== '' && p.narx !== ''
     )
 
@@ -24,14 +35,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Kamida 1 ta tovar kiriting' }, { status: 400 })
     }
 
-    // Tovarlarni saqlash
     await prisma.product.createMany({
       data: validProducts.map((p: { nom: string, narx: string, tavsif: string, image?: string }) => ({
         name: p.nom,
         price: parseFloat(p.narx),
         description: p.tavsif,
-        image: p.image || '', // <--- Mana bu yerda rasm URL manzilini bazaga yuboramiz
-        storeId: decoded.storeId,
+        image: p.image || '',
+        storeId: storeId,
       }))
     })
 
@@ -39,6 +49,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('PRODUCTS ERROR:', error)
-    return NextResponse.json({ error: 'Xatolik yuz berdi' }, { status: 500 })
+    return NextResponse.json({ error: String(error) }, { status: 500 })
   }
 }
