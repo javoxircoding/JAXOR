@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
@@ -32,7 +33,27 @@ export async function POST(req: NextRequest) {
       include: { store: true }
     })
 
-    return NextResponse.json({ success: true, userId: user.id, storeId: user.store?.id })
+    // Token yaratish
+    const token = jwt.sign(
+      { userId: user.id, storeId: user.store?.id, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: '7d' }
+    )
+
+    const response = NextResponse.json({
+      success: true,
+      userId: user.id,
+      storeId: user.store?.id
+    })
+
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7
+    })
+
+    return response
 
   } catch (error) {
     console.error('REGISTER ERROR:', error)

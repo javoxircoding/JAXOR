@@ -10,19 +10,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Avtorizatsiya talab qilinadi' }, { status: 401 })
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, storeId: string }
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
     const { description, address, logoUrl, bannerUrl } = await req.json()
 
+    // Diqqat: storeId emas, ownerId (userId) orqali update qilamiz
+    // Chunki ownerId ham @unique, u hech qachon aldamaydi
     const store = await prisma.store.update({
-      where: { id: decoded.storeId },
-      data: { description, address, logo: logoUrl, banner: bannerUrl }
+      where: { 
+        ownerId: decoded.userId 
+      },
+      data: { 
+        description, 
+        address, 
+        logo: logoUrl, 
+        banner: bannerUrl 
+      }
     })
 
     return NextResponse.json({ success: true, store })
 
   } catch (error) {
     console.error('ONBOARDING ERROR:', error)
-    return NextResponse.json({ error: String(error) }, { status: 500 })
+    // Agar baribir topilmasa, demak Registerda xato bo'lgan yoki do'kon o'chgan
+    return NextResponse.json({ 
+      error: "Do'kon topilmadi. Qaytadan ro'yxatdan o'ting yoki bazani tekshiring." 
+    }, { status: 500 })
   }
 }
