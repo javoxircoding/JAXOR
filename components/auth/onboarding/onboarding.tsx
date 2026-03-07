@@ -17,21 +17,22 @@ const Onboarding = () => {
   const [bannerFile, setBannerFile] = useState<File | null>(null)
 
   // Step 2
-  const [tovarlar, setTovarlar] = useState([{ nom: '', narx: '', tavsif: '' }])
+  const [tovarlar, setTovarlar] = useState([
+    { nom: '', narx: '', tavsif: '', image: '', imageFile: null as File | null }
+  ])
 
   const router = useRouter()
 
   const addTovar = () => {
-    setTovarlar([...tovarlar, { nom: '', narx: '', tavsif: '' }])
+    setTovarlar([...tovarlar, { nom: '', narx: '', tavsif: '', image: '', imageFile: null }])
   }
 
-  const updateTovar = (i: number, field: string, value: string) => {
+  const updateTovar = (i: number, field: string, value: string | File | null) => {
     const yangi = [...tovarlar]
     yangi[i] = { ...yangi[i], [field]: value }
     setTovarlar(yangi)
   }
 
-  // Rasm preview
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -48,7 +49,14 @@ const Onboarding = () => {
     }
   }
 
-  // Rasm yuklash
+  const handleTovarImage = (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      updateTovar(i, 'imageFile', file)
+      updateTovar(i, 'image', URL.createObjectURL(file))
+    }
+  }
+
   const uploadImage = async (file: File) => {
     const formData = new FormData()
     formData.append('file', file)
@@ -57,7 +65,6 @@ const Onboarding = () => {
     return data.url
   }
 
-  // Step 1 saqlash
   const handleStep1 = async () => {
     setLoading(true)
     setError('')
@@ -82,15 +89,24 @@ const Onboarding = () => {
     }
   }
 
-  // Step 2 saqlash
   const handleStep2 = async () => {
     setLoading(true)
     setError('')
     try {
+      const tovarlarWithImages = await Promise.all(
+        tovarlar.map(async (tovar) => {
+          let imageUrl = ''
+          if (tovar.imageFile) {
+            imageUrl = await uploadImage(tovar.imageFile)
+          }
+          return { ...tovar, image: imageUrl }
+        })
+      )
+
       await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ products: tovarlar })
+        body: JSON.stringify({ products: tovarlarWithImages })
       })
       setStep(3)
     } catch {
@@ -138,7 +154,6 @@ const Onboarding = () => {
           <h2 className={styles.cardTitle}>Do'kon sahifasini sozlang</h2>
           <p className={styles.cardSubtitle}>Logo va banner qo'shing — mijozlar buni ko'radi</p>
 
-          {/* LOGO */}
           <div className={styles.uploadArea} style={logoPreview ? { padding: '0', border: 'none' } : {}}>
             <input type="file" accept="image/*" className={styles.fileInput} onChange={handleLogoChange} />
             {logoPreview ? (
@@ -152,7 +167,6 @@ const Onboarding = () => {
             )}
           </div>
 
-          {/* BANNER */}
           <div className={styles.uploadArea} style={bannerPreview ? { padding: '0', border: 'none' } : {}}>
             <input type="file" accept="image/*" className={styles.fileInput} onChange={handleBannerChange} />
             {bannerPreview ? (
@@ -203,6 +217,20 @@ const Onboarding = () => {
           {tovarlar.map((tovar, i) => (
             <div key={i} className={styles.tovarBox}>
               <div className={styles.tovarGrid}>
+
+                <div className={styles.tovarLogo} style={tovar.image ? { padding: '0', border: 'none' } : {}}>
+                  <input type="file" accept="image/*" className={styles.fileInput} onChange={(e) => handleTovarImage(i, e)} />
+                  {tovar.image ? (
+                    <img src={tovar.image} alt="Tovar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }} />
+                  ) : (
+                    <>
+                      <div className={styles.uploadIcon}><img src="/cutlery.png" alt="logo" /></div>
+                      <div className={styles.uploadTitle}>Tovar logosi</div>
+                      <div className={styles.uploadDesc}>PNG, JPG — max 2MB</div>
+                    </>
+                  )}
+                </div>
+
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>Tovar nomi</label>
                   <input
@@ -213,6 +241,7 @@ const Onboarding = () => {
                     onChange={(e) => updateTovar(i, 'nom', e.target.value)}
                   />
                 </div>
+
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>Narxi (so'm)</label>
                   <input
@@ -224,6 +253,7 @@ const Onboarding = () => {
                   />
                 </div>
               </div>
+
               <div className={styles.inputGroup}>
                 <label className={styles.label}>Qisqa tavsif</label>
                 <input

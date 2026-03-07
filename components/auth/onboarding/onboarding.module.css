@@ -152,7 +152,7 @@
   cursor: pointer;
 }
 
-.uploadIcon { font-size: 36px; margin-bottom: 10px; }
+.uploadIcon img{ width: 36px; height: 36px; margin-bottom: 10px; }
 
 .uploadTitle {
   font-size: 15px;
@@ -164,7 +164,6 @@
 .uploadDesc { font-size: 13px; color: #94a3b8; }
 
 /* INPUTS */
-.inputGroup { margin-bottom: 20px; }
 
 .label {
   display: block;
@@ -231,9 +230,31 @@
 
 .tovarGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 16px;
 }
+.tovarLogo{
+  border: 2px dashed #e2e8f0;
+  border-radius: 14px;
+  padding: 25px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 16px;
+  position: relative;
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.tovarLogo:hover {
+  border-color: #2083c5;
+  background: rgba(32, 131, 197, 0.02);
+}
+.inputGroup { 
+  margin-bottom: 10px; 
+  grid-column: span 3;
+}  
+
 
 .addTovar {
   width: 100%;
@@ -249,6 +270,8 @@
   margin-bottom: 24px;
   font-family: 'Inter', sans-serif;
 }
+
+
 
 .addTovar:hover { background: rgba(32, 131, 197, 0.1); }
 
