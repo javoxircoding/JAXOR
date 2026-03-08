@@ -305,4 +305,4 @@ const Onboarding = () => {
   )
 }
 
-export default Onboarding
+export default Onboarding;
