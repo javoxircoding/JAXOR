@@ -6,16 +6,13 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Token tekshirish
     const token = req.cookies.get('token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Avtorizatsiya talab qilinadi' }, { status: 401 })
     }
 
-    // Tokenni tekshirish va ma'lumotlarni olish
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
 
-    // 2. Do'konni bazadan aniq topish (Xavfsizlik uchun)
     const userStore = await prisma.store.findUnique({
       where: { ownerId: decoded.userId },
       select: { id: true }
@@ -27,24 +24,29 @@ export async function POST(req: NextRequest) {
 
     const { products } = await req.json()
 
-    // 3. Bo'sh bo'lmagan mahsulotlarni filtrlash
-    const validProducts = products.filter((p: any) => 
-      p.nom && p.nom.trim() !== '' && p.narx !== ''
-    )
+    const validProducts = products
+      .map((p: any) => {
+        const price = Number(p.narx)
+
+        if (!p.nom || p.nom.trim() === '') return null
+        if (isNaN(price) || price <= 0) return null
+
+        return {
+          name: p.nom.trim(),
+          price,
+          description: p.tavsif?.trim() || '',
+          image: p.image && p.image.startsWith('http') ? p.image : null,
+          storeId: userStore.id,
+        }
+      })
+      .filter(Boolean)
 
     if (validProducts.length === 0) {
       return NextResponse.json({ error: 'Kamida 1 ta tovar kiriting' }, { status: 400 })
     }
 
-    // 4. Mahsulotlarni rasm linki bilan birga bazaga saqlash
     await prisma.product.createMany({
-      data: validProducts.map((p: any) => ({
-        name: p.nom,
-        price: parseFloat(p.narx),
-        description: p.tavsif || '',
-        image: p.image || null, // Frontenddan kelgan Cloudinary/Upload linki
-        storeId: userStore.id,  // Do'kon ID-si bilan bog'lash
-      }))
+      data: validProducts
     })
 
     return NextResponse.json({ success: true })

@@ -209,77 +209,207 @@ const Onboarding = () => {
       )}
 
       {/* STEP 2 */}
-      {step === 2 && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Birinchi tovarlarni qo'shing</h2>
-          <p className={styles.cardSubtitle}>Kamida 1 ta tovar qo'shing — keyinchalik ko'paytirasiz</p>
+{step === 2 && (
+  <div className={styles.card}>
+    <h2 className={styles.cardTitle}>Birinchi tovarlarni qo'shing</h2>
+    <p className={styles.cardSubtitle}>
+      Kamida 1 ta tovar qo'shing — keyinchalik ko'paytirasiz
+    </p>
 
-          {tovarlar.map((tovar, i) => (
-            <div key={i} className={styles.tovarBox}>
-              <div className={styles.tovarGrid}>
+    {tovarlar.map((tovar, i) => (
+      <div key={i} className={styles.tovarBox}>
+        <div className={styles.tovarGrid}>
 
-                <div className={styles.tovarLogo} style={tovar.image ? { padding: '0', border: 'none' } : {}}>
-                  <input type="file" accept="image/*" className={styles.fileInput} onChange={(e) => handleTovarImage(i, e)} />
-                  {tovar.image ? (
-                    <img src={tovar.image} alt="Tovar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }} />
-                  ) : (
-                    <>
-                      <div className={styles.uploadIcon}><img src="/cutlery.png" alt="logo" /></div>
-                      <div className={styles.uploadTitle}>Tovar logosi</div>
-                      <div className={styles.uploadDesc}>PNG, JPG — max 2MB</div>
-                    </>
-                  )}
+          {/* IMAGE */}
+          <div
+            className={styles.tovarLogo}
+            style={tovar.image ? { padding: '0', border: 'none' } : {}}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              className={styles.fileInput}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+
+                if (file) {
+                  setTovarlar((prev) => {
+                    const yangi = [...prev]
+
+                    yangi[i] = {
+                      ...yangi[i],
+                      imageFile: file,
+                      image: URL.createObjectURL(file)
+                    }
+
+                    return yangi
+                  })
+                }
+              }}
+            />
+
+            {tovar.image ? (
+              <img
+                src={tovar.image}
+                alt="Tovar"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '20px'
+                }}
+              />
+            ) : (
+              <>
+                <div className={styles.uploadIcon}>
+                  <img src="/cutlery.png" alt="logo" />
                 </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Tovar nomi</label>
-                  <input
-                    className={styles.input}
-                    type="text"
-                    placeholder="Somsa"
-                    value={tovar.nom}
-                    onChange={(e) => updateTovar(i, 'nom', e.target.value)}
-                  />
+                <div className={styles.uploadTitle}>Tovar logosi</div>
+                <div className={styles.uploadDesc}>
+                  PNG, JPG — max 2MB
                 </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Narxi (so'm)</label>
-                  <input
-                    className={styles.input}
-                    type="number"
-                    placeholder="5000"
-                    value={tovar.narx}
-                    onChange={(e) => updateTovar(i, 'narx', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Qisqa tavsif</label>
-                <input
-                  className={styles.input}
-                  type="text"
-                  placeholder="Tandirda pishirilgan..."
-                  value={tovar.tavsif}
-                  onChange={(e) => updateTovar(i, 'tavsif', e.target.value)}
-                />
-              </div>
-            </div>
-          ))}
-
-          <button className={styles.addTovar} onClick={addTovar}>
-            + Tovar qo'shish
-          </button>
-
-          <div className={styles.btns}>
-            <button className={styles.btnBack} onClick={() => setStep(1)}>← Orqaga</button>
-            <button className={styles.btn} onClick={handleStep2} disabled={loading}>
-              {loading ? 'Saqlanmoqda...' : 'Davom etish →'}
-            </button>
+              </>
+            )}
           </div>
-          <p className={styles.skip} onClick={() => setStep(3)}>Hozircha o'tkazib yuborish</p>
+
+          {/* NAME */}
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Tovar nomi</label>
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="Somsa"
+              value={tovar.nom}
+              onChange={(e) =>
+                setTovarlar((prev) => {
+                  const yangi = [...prev]
+                  yangi[i] = { ...yangi[i], nom: e.target.value }
+                  return yangi
+                })
+              }
+            />
+          </div>
+
+          {/* PRICE */}
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Narxi (so'm)</label>
+            <input
+              className={styles.input}
+              type="number"
+              placeholder="5000"
+              value={tovar.narx}
+              onChange={(e) =>
+                setTovarlar((prev) => {
+                  const yangi = [...prev]
+                  yangi[i] = { ...yangi[i], narx: e.target.value }
+                  return yangi
+                })
+              }
+            />
+          </div>
         </div>
-      )}
+
+        {/* DESCRIPTION */}
+        <div className={styles.inputGroup}>
+          <label className={styles.label}>Qisqa tavsif</label>
+          <input
+            className={styles.input}
+            type="text"
+            placeholder="Tandirda pishirilgan..."
+            value={tovar.tavsif}
+            onChange={(e) =>
+              setTovarlar((prev) => {
+                const yangi = [...prev]
+                yangi[i] = { ...yangi[i], tavsif: e.target.value }
+                return yangi
+              })
+            }
+          />
+        </div>
+      </div>
+    ))}
+
+    {/* ADD PRODUCT */}
+    <button
+      className={styles.addTovar}
+      onClick={() =>
+        setTovarlar((prev) => [
+          ...prev,
+          { nom: '', narx: '', tavsif: '', image: '', imageFile: null }
+        ])
+      }
+    >
+      + Tovar qo'shish
+    </button>
+
+    {/* BUTTONS */}
+    <div className={styles.btns}>
+      <button className={styles.btnBack} onClick={() => setStep(1)}>
+        ← Orqaga
+      </button>
+
+      <button
+        className={styles.btn}
+        disabled={loading}
+        onClick={async () => {
+          setLoading(true)
+          setError('')
+
+          try {
+            console.log('TOVARLAR:', tovarlar)
+
+            const tovarlarWithImages = await Promise.all(
+              tovarlar.map(async (tovar) => {
+                let imageUrl = ''
+
+                if (tovar.imageFile) {
+                  const formData = new FormData()
+                  formData.append('file', tovar.imageFile)
+
+                  const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                  })
+
+                  const data = await res.json()
+                  imageUrl = data.url
+                }
+
+                const { imageFile, ...rest } = tovar
+
+                return {
+                  ...rest,
+                  image: imageUrl
+                }
+              })
+            )
+
+            console.log('FINAL:', tovarlarWithImages)
+
+            await fetch('/api/products', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ products: tovarlarWithImages })
+            })
+
+            setStep(3)
+          } catch (err) {
+            console.error(err)
+            setError('Xatolik yuz berdi')
+          } finally {
+            setLoading(false)
+          }
+        }}
+      >
+        {loading ? 'Saqlanmoqda...' : 'Davom etish →'}
+      </button>
+    </div>
+
+    <p className={styles.skip} onClick={() => setStep(3)}>
+      Hozircha o'tkazib yuborish
+    </p>
+  </div>
+)}
 
       {/* STEP 3 */}
       {step === 3 && (

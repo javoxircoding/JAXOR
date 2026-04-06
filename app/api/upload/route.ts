@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 export const runtime = 'nodejs'
 
+import { randomUUID } from 'crypto'
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
@@ -11,7 +13,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Fayl topilmadi' }, { status: 400 })
     }
 
-    const filename = Date.now() + '_' + file.name
+    // TYPE CHECK
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: 'Noto‘g‘ri fayl turi' }, { status: 400 })
+    }
+
+    // SIZE CHECK
+    if (file.size > 2 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Fayl juda katta (max 2MB)' }, { status: 400 })
+    }
+
+    const filename = `products/${randomUUID()}-${file.name}`
+
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 

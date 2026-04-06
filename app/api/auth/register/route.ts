@@ -6,12 +6,20 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, phone, password, storeName, storeType } = await req.json()
+    const { name, phone, password, storeName, storeType, plan } = await req.json()
 
     const existing = await prisma.user.findUnique({ where: { phone } })
     if (existing) {
       return NextResponse.json({ error: "Bu telefon allaqachon ro'yxatdan o'tgan" }, { status: 400 })
     }
+
+    // PLAN VALIDATION
+    const allowedPlans = ['starter', 'standart', 'pro']
+    if (!allowedPlans.includes(plan)) {
+      return NextResponse.json({ error: 'Noto‘g‘ri tarif' }, { status: 400 })
+    }
+
+    const dbPlan = plan.toUpperCase()
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -25,7 +33,7 @@ export async function POST(req: NextRequest) {
             name: storeName,
             slug: storeName.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now(),
             type: storeType,
-            plan: 'STARTER',
+            plan: dbPlan,
             status: 'TRIAL',
           }
         }
@@ -33,7 +41,6 @@ export async function POST(req: NextRequest) {
       include: { store: true }
     })
 
-    // Token yaratish
     const token = jwt.sign(
       { userId: user.id, storeId: user.store?.id, role: user.role },
       process.env.JWT_SECRET!,
