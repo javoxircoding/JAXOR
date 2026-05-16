@@ -39,6 +39,7 @@ model Store {
   owner       User     @relation(fields: [ownerId], references: [id])
   products    Product[]
   orders      Order[]
+  subdomain    String   @unique
 }
 
 // TOVAR
