@@ -5,21 +5,46 @@ import styles from './login.module.css'
 
 const Login = () => {
   const router = useRouter()
-  const [phone, setPhone] = useState('')
+  
+  // Разделяем стейты для чистых цифр и для красивой маски
+  const [phone, setPhone] = useState('') // Сюда пойдут чистые 9 цифр (например: 901234567)
+  const [phoneDisplay, setPhoneDisplay] = useState('') // Сюда пойдет маска: (90) 000-00-00
+  
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Функция маски для Узбекистана
+  const formatUzbekPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '') // Только цифры
+    const trimmed = digits.slice(0, 9)     // Ограничение до 9 знаков после +998
+
+    if (trimmed.length <= 2) return trimmed ? `(${trimmed}` : ''
+    if (trimmed.length <= 5) return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2)}`
+    if (trimmed.length <= 7) return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2, 5)}-${trimmed.slice(5)}`
+    return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2, 5)}-${trimmed.slice(5, 7)}-${trimmed.slice(7)}`
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Проверяем заполненность номера перед отправкой
+    if (phone.length !== 9) {
+      setError("Telefon raqamini to'liq kiriting (9 ta raqam bo'lishi shart!)")
+      return
+    }
+
     setLoading(true)
     setError('')
+
+    // Склеиваем префикс с чистыми цифрами для бэкенда логина
+    const fullPhoneNumber = `+998${phone}`
 
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
+        body: JSON.stringify({ phone: fullPhoneNumber, password })
       })
 
       const data = await res.json()
@@ -29,7 +54,14 @@ const Login = () => {
         return
       }
 
-      router.push('/dashboard')
+      // FIX: Динамический редирект в зависимости от роли из бэкенда
+      if (data.user?.role === 'SUPER_ADMIN') {
+        // Если заходишь ты (Король платформы) — летишь в суперадминку
+        router.push('/super-admin')
+      } else {
+        // Если заходит обычный вендор — летит в свой магазин
+        router.push('/dashboard')
+      }
 
     } catch {
       setError('Internet bilan muammo bor')
@@ -85,17 +117,47 @@ const Login = () => {
           {error && <div className={styles.errorBox}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
+            
+            {/* Измененный inputGroup со стильным телефонным контейнером */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>Telefon raqam</label>
-              <input
-                className={styles.input}
-                type="tel"
-                placeholder="+998 90 000 00 00"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
+              <div className={styles.phoneContainer}>
+                <span style={{ 
+                  color: '#0F172A', 
+                  fontWeight: '700', 
+                  marginRight: '8px', 
+                  userSelect: 'none',
+                  fontSize: '15px',
+                  fontFamily: "'Inter', sans-serif"
+                }}>
+                  +998
+                </span>
+                <input
+                  type="text"
+                  placeholder="(90) 000-00-00"
+                  value={phoneDisplay}
+                  onChange={(e) => {
+                    const formatted = formatUzbekPhone(e.target.value)
+                    setPhoneDisplay(formatted)
+                    const cleanDigits = e.target.value.replace(/\D/g, '').slice(0, 9)
+                    setPhone(cleanDigits)
+                  }}
+                  required
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    padding: '14px 0',
+                    fontSize: '15px',
+                    color: '#0F172A',
+                    width: '100%',
+                    fontFamily: "'Inter', sans-serif",
+                    fontWeight: '500'
+                  }}
+                />
+              </div>
             </div>
+
             <div className={styles.inputGroup}>
               <label className={styles.label}>Parol</label>
               <input

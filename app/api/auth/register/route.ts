@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
@@ -8,149 +7,56 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    const {
-      name,
-      phone,
-      password,
-      storeName,
-      storeType,
-      plan,
-    } = await req.json()
+    const body = await req.json()
+    // Принимаем Имя, Пароль и выбранный тариф (План)
+    const { name, password, plan } = body 
 
-    // =========================
-    // VALIDATION
-    // =========================
-
-    if (
-      !name ||
-      !phone ||
-      !password ||
-      !storeName ||
-      !storeType ||
-      !plan
-    ) {
+    // Валидация
+    if (!name?.trim() || !password?.trim()) {
       return NextResponse.json(
-        { error: "Barcha maydonlarni to‘ldiring" },
+        { error: "Ism va parolni kiriting" },
         { status: 400 }
       )
     }
 
-    // =========================
-    // EXISTING USER CHECK
-    // =========================
-
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        phone,
-      },
+    // Проверяем, нет ли юзера с таким же Именем/Фамилией
+    const existingUser = await prisma.user.findFirst({
+      where: { name: name.trim() },
     })
 
     if (existingUser) {
       return NextResponse.json(
-        {
-          error: "Bu telefon allaqachon ro‘yxatdan o‘tgan",
-        },
+        { error: "Bu foydalanuvchi nomi allaqachon mavjud" },
         { status: 400 }
       )
     }
-
-    // =========================
-    // PLAN VALIDATION
-    // =========================
-
-    const allowedPlans = ['starter', 'standart', 'pro']
-
-    if (!allowedPlans.includes(plan)) {
-      return NextResponse.json(
-        { error: 'Noto‘g‘ri tarif tanlandi' },
-        { status: 400 }
-      )
-    }
-
-    // =========================
-    // GENERATED VALUES
-    // =========================
-
-    const generatedSlug =
-      storeName
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-') +
-      '-' +
-      Date.now()
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const dbPlan = plan.toUpperCase()
-
-    // =========================
-    // CREATE USER + STORE
-    // =========================
-
+    // Создаем чистого пользователя. Поле phone запишется как null автоматически!
     const user = await prisma.user.create({
       data: {
-        name,
-        phone,
+        name: name.trim(),
         password: hashedPassword,
-
-        store: {
-          create: {
-            name: storeName,
-
-            slug: generatedSlug,
-
-            subdomain: generatedSlug,
-
-            type: storeType,
-
-            plan: dbPlan,
-
-            status: 'TRIAL',
-          },
-        },
-      },
-
-      include: {
-        store: true,
+        // Сразу сохраняем выбранный план, приводя к верхнему регистру (STARTER, STANDART, PRO)
+        plan: (plan?.toUpperCase() as any) || 'STARTER',
       },
     })
 
-    // =========================
-    // JWT TOKEN
-    // =========================
-
+    // Генерируем токен (пока без storeId, так как магазина еще нет)
     const token = jwt.sign(
-      {
-        userId: user.id,
-        storeId: user.store?.id,
-        role: user.role,
-      },
+      { userId: user.id, role: user.role },
       process.env.JWT_SECRET!,
-      {
-        expiresIn: '7d',
-      }
+      { expiresIn: '7d' }
     )
-
-    // =========================
-    // RESPONSE
-    // =========================
 
     const response = NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-      },
-
-      store: user.store,
+      message: "Ro'yxatdan muvaffaqiyatli o'tdingiz. Endi obunani rasmiylashtiring.",
+      user: { id: user.id, name: user.name, role: user.role }
     })
 
-    // =========================
-    // COOKIE
-    // =========================
-
+    // Устанавливаем HTTP-only куку для авторизации
     response.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -158,17 +64,11 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     })
-
+    
     return response
+
   } catch (error) {
     console.error('REGISTER ERROR:', error)
-
-    return NextResponse.json(
-      {
-        error: 'Server xatosi',
-        details: String(error),
-      },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Server xatosi', details: String(error) }, { status: 500 })
   }
 }

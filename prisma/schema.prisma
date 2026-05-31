@@ -12,47 +12,59 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   name      String
-  phone     String   @unique
+  phone     String?  @unique // ✨ FIX: Теперь phone может быть пустым при регистрации!
   password  String
   role      Role     @default(VENDOR)
+  plan      Plan     @default(STARTER) // ✨ ДОБАВИЛИ: Чтобы тариф сохранялся сразу при регистрации
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   store     Store?
 }
 
 // DO'KON
-model Store {
+// DO'KON
+model Product {
   id          String   @id @default(cuid())
   name        String
-  slug        String   @unique
+  description String?
+  price       Float    // Для сумов сойдет, но помни про округления в JS
+  stock       Int      @default(0)
+  image       String?
+  createdAt   DateTime @default(now())
+  
+  // 🔥 ДОБАВИЛИ: Автоматическое отслеживание изменений товара
+  updatedAt   DateTime @updatedAt 
+
+  storeId     String
+  
+  // FIX 2: Добавляем onDelete: Cascade к связи со Store
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model Store {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique // Используем для красивых ссылок jaxor.uz/store/slug
   type        String
   description String?
   address     String?
   logo        String?
   banner      String?
-  plan        Plan     @default(STARTER)
-  status      Status   @default(TRIAL)
-  trialEndsAt DateTime @default(dbgenerated("NOW() + INTERVAL '14 days'"))
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  ownerId     String   @unique
-  owner       User     @relation(fields: [ownerId], references: [id])
+  plan        Plan      @default(STARTER)
+  status      Status    @default(TRIAL)
+  
+  trialEndsAt DateTime  
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  ownerId     String    @unique
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
   products    Product[]
   orders      Order[]
-  subdomain    String   @unique
-}
-
-// TOVAR
-model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  price       Float
-  stock       Int      @default(0)
-  image       String?
-  createdAt   DateTime @default(now())
-  storeId     String
-  store       Store    @relation(fields: [storeId], references: [id])
+  subdomain   String?   @unique // ✨ FIX: Сделали опциональным (добавили ?), чтобы база не падала, если поддомен еще не настроен
+  payments    Payment[]
 }
 
 // BUYURTMA
@@ -62,7 +74,9 @@ model Order {
   total     Float
   createdAt DateTime    @default(now())
   storeId   String
-  store     Store       @relation(fields: [storeId], references: [id])
+  
+  // FIX 3: Добавляем onDelete: Cascade к связи со Store, чтобы старые заказы не оставались сиротами
+  store     Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
@@ -88,4 +102,21 @@ enum OrderStatus {
   DELIVERY
   DONE
   CANCELLED
+}
+
+// TO'LOVLAR TARIXI
+model Payment {
+  id        String        @id @default(cuid())
+  amount    Float         // To'lov summasi (masalan: 300000)
+  status    PaymentStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  storeId   String
+  // Тут у тебя уже стоял Cascade — это супер!
+  store     Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
 }

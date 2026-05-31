@@ -1,0 +1,102 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #0F172A; /* Твой фирменный темный фон */
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+.card {
+  background: #1E293B;
+  padding: 40px;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
+}
+
+.title {
+  color: #FFFFFF;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.subtitle {
+  color: #94A3B8;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.planInfo, .priceBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #334155;
+  color: #E2E8F0;
+}
+
+.amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: #38BDF8; /* Красивый голубой акцент */
+}
+
+.paymentMethods {
+  margin-top: 24px;
+  color: #94A3B8;
+  font-size: 14px;
+}
+
+.mockMethods {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 24px;
+}
+
+.method {
+  flex: 1;
+  padding: 12px;
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  text-align: center;
+  color: #94A3B8;
+  cursor: pointer;
+}
+
+.method.active {
+  border-color: #38BDF8;
+  color: #FFFFFF;
+  background: #0F172A;
+}
+
+.payBtn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.payBtn:hover {
+  opacity: 0.9;
+}
+
+.payBtn:disabled {
+  background: #475569;
+  cursor: not-allowed;
+}

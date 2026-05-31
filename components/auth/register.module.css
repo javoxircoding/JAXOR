@@ -342,6 +342,7 @@
   font-weight: 700;
   text-decoration: none;
 }
+
 .errorBox {
   padding: 12px 16px;
   background: rgba(239, 68, 68, 0.08);
@@ -350,6 +351,26 @@
   font-size: 14px;
   color: #ef4444;
   margin-bottom: 20px;
+}
+
+/* FIX: Специальный контейнер для инпута телефона с маской */
+.phoneContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 16px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  transition: all 0.3s ease; /* FIX: Добавлена плавность для эффектов */
+}
+
+/* Эффект фокуса при клике на поле телефона */
+.phoneContainer:focus-within {
+  border-color: #2083c5;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(32, 131, 197, 0.08);
+  transform: translateY(-1px); /* Плавно приподнимает инпут */
 }
 
 /* ADAPTIVE */
