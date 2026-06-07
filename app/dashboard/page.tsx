@@ -1,155 +1,193 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import type { View, Period } from './types'
+import { INIT_ORDERS } from './mockData'
+import { useStoreInfo } from '@/hooks/useStoreInfo'
+import { useProducts, type RealProduct } from '@/hooks/useProducts'
+import type { ProductFormData } from './products/ProductModal'
+
+import OverviewView from './views/overviews'
+import ProductView  from './views/product'
+import OrdersView   from './views/ordes'
+import SettingsView from './views/settings'
+import ProductModal from './products/ProductModal'
+
 import styles from './dashboard.module.css'
 
-interface StoreData {
-  id: string
-  name: string
-  slug: string
-  type: string
-  plan: string
-  status: string
-  phone: string
+const PLAN_COLOR: Record<string, string> = {
+  STARTER: '#94a3b8', STANDART: '#4ade80', PRO: '#f59e0b',
 }
 
-export default function DashboardHome() {
-  const [store, setStore] = useState<StoreData | null>(null)
-  const [metrics, setMetrics] = useState({ totalSales: 0, ordersCount: 0, productsCount: 0 })
-  const [loading, setLoading] = useState(true)
-  const [copied, setCopied] = useState(false)
-  
-  const router = useRouter()
+const EMPTY_FORM: ProductFormData = {
+  name: '', description: '', price: '', stock: '', image: ''
+}
 
-  useEffect(() => {
-    // В реальном проекте тут будет запрос к твоему API (например, /api/dashboard/overview)
-    // Сейчас сделаем имитацию загрузки данных из бэкенда для MVP
-    const fetchDashboardData = async () => {
-      try {
-        // Имитируем задержку сети
-        await new Promise((resolve) => setTimeout(resolve, 800))
-        
-        // Мок-данные созданного магазина
-        setStore({
-          id: 'store-123',
-          name: 'Gagarin Burger',
-          slug: 'gagarin-burger',
-          type: 'FOOD',
-          plan: 'STARTER',
-          status: 'TRIAL',
-          phone: '+998 (90) 499-76-82'
-        })
+export default function Dashboard() {
+  const [view,        setView]        = useState<View>('overview')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [period,      setPeriod]      = useState<Period>('day')
 
-        setMetrics({
-          totalSales: 450000, // в сумах
-          ordersCount: 12,
-          productsCount: 8
-        })
-      } catch (error) { 
-        console.error("Ma'lumot yuklashda xatolik:", error)
-      } finally {
-        setLoading(false)
-      }
+  const { data: store, loading: storeLoading, refetch: refetchStore } = useStoreInfo()
+  const { products, loading: productsLoading, refetch: refetchProducts } = useProducts()
+
+  const [orders] = useState(INIT_ORDERS)
+
+  // ── Modal ──
+  const [modal,     setModal]     = useState(false)
+  const [form,      setForm]      = useState<ProductFormData>(EMPTY_FORM)
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  const openAdd = () => {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    setModal(true)
+  }
+
+  const openEdit = (p: RealProduct) => {
+    setEditingId(p.id)
+    setForm({
+      id:          p.id,
+      name:        p.name,
+      description: p.description,
+      price:       String(p.price),
+      stock:       String(p.stock),
+      image:       p.image ?? '',
+    })
+    setModal(true)
+  }
+
+  const saveProduct = async () => {
+    if (!form.name.trim() || !form.price) return
+
+    const method = editingId ? 'PATCH' : 'POST'
+    const body   = {
+      ...(editingId && { id: editingId }),
+      name:        form.name.trim(),
+      description: form.description,
+      price:       Number(form.price),
+      stock:       Number(form.stock) || 0,
+      image:       form.image || null,
     }
 
-    fetchDashboardData()
-  }, [])
+    const res = await fetch('/api/dashboard/products', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
 
-  // Функция копирования публичной ссылки для клиентов
-  const handleCopyLink = () => {
-    if (!store) return
-    // Формируем ссылку динамически на основе текущего домена
-    const publicLink = `${window.location.origin}/store/${store.slug}`
-    navigator.clipboard.writeText(publicLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    if (res.ok) {
+      setModal(false)
+      refetchProducts()
+    } else {
+      const data = await res.json()
+      alert(data.error || 'Xatolik')
+    }
   }
 
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Jaxor tizimi yuklanmoqda...</p>
-      </div>
-    )
+  const deleteProduct = async (id: string) => {
+    if (!confirm("Bu mahsulotni o'chirishni xohlaysizmi?")) return
+    const res = await fetch(`/api/dashboard/products?id=${id}`, { method: 'DELETE' })
+    if (res.ok) refetchProducts()
   }
+
+  // ── Sidebar ──
+  const displayName  = storeLoading ? '...' : (store?.storeName ?? "Do'kon")
+  const displayPlan  = store?.plan ?? 'STARTER'
+  const planColor    = PLAN_COLOR[displayPlan] ?? '#94a3b8'
+  const avatarLetter = displayName.charAt(0).toUpperCase()
+  const planBadge    = store?.status === 'TRIAL'
+    ? `${displayPlan} · ${store.daysLeft} kun`
+    : displayPlan
+
+  const navItems: { id: View; icon: string; label: string }[] = [
+    { id: 'overview', icon: '◈', label: 'Umumiy'      },
+    { id: 'products', icon: '⊞', label: 'Mahsulotlar' },
+    { id: 'orders',   icon: '◎', label: 'Buyurtmalar' },
+    { id: 'settings', icon: '⊙', label: 'Sozlamalar'  },
+  ]
 
   return (
-    <div className={styles.container}>
-      {/* Шапка дашборда */}
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.welcomeTitle}>Xush kelibsiz, {store?.name}! 👋</h1>
-          <p className={styles.welcomeSubtitle}>Do'koningiz statistikasi va boshqaruv paneli</p>
-        </div>
-        
-        {/* Блок с тарифом */}
-        <div className={styles.planBadge}>
-          <span>Tarif: <b>{store?.plan}</b></span>
-          <span className={styles.statusDot} data-status={store?.status}>
-            {store?.status === 'TRIAL' ? 'Sinov muddati' : 'Faol'}
-          </span>
-        </div>
-      </div>
+    <div className={styles.root}>
+      {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
 
-      {/* 🔥 КАРТОЧКА ПУБЛИЧНОЙ ССЫЛКИ ДЛЯ КЛИЕНТОВ */}
-      <div className={styles.linkCard}>
-        <div className={styles.linkInfo}>
-          <h3 className={styles.linkTitle}>Xaridorlar uchun do'kon havolasi 🔗</h3>
-          <p className={styles.linkSubtitle}>Ushbu havolani nusxalang va mijozlaringizga (Telegram, Instagram) yuboring</p>
-          <div className={styles.linkInputGroup}>
-            <input 
-              type="text" 
-              readOnly 
-              value={typeof window !== 'undefined' ? `${window.location.origin}/store/${store?.slug}` : ''} 
-              className={styles.linkInput}
-            />
-            <button onClick={handleCopyLink} className={styles.copyBtn}>
-              {copied ? "Nusxalandi! ✅" : "Nusxa olish 📋"}
+      {/* ── SIDEBAR ── */}
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+        <div className={styles.sidebarLogo}>
+          <span className={styles.logoMark}>J</span>
+          <span className={styles.logoText}>JAXOR</span>
+        </div>
+        <nav className={styles.nav}>
+          {navItems.map(item => (
+            <button key={item.id}
+              className={`${styles.navItem} ${view === item.id ? styles.navItemActive : ''}`}
+              onClick={() => { setView(item.id); setSidebarOpen(false) }}
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              <span className={styles.navLabel}>{item.label}</span>
+              {view === item.id && <span className={styles.navActiveBar} />}
             </button>
+          ))}
+        </nav>
+        <div className={styles.sidebarFooter}>
+          <div className={styles.storeInfo}>
+            {store?.logo
+              ? <img src={store.logo} alt="logo" style={{ width: 34, height: 34, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+              : <div className={styles.storeAvatar}>{avatarLetter}</div>
+            }
+            <div>
+              <div className={styles.storeName}>{displayName}</div>
+              <div className={styles.storePlan} style={{ color: planColor }}>{planBadge}</div>
+            </div>
           </div>
+          {store?.storeSlug
+            ? <a href={`/store/${store.storeSlug}`} target="_blank" rel="noreferrer" className={styles.viewStoreBtn}>Do'konni ko'rish ↗</a>
+            : <span className={styles.viewStoreBtn} style={{ opacity: 0.4, cursor: 'default' }}>Do'kon topilmadi</span>
+          }
         </div>
-      </div>
+      </aside>
 
-      {/* МЕТРИКИ / СТАТИСТИКА */}
-      <div className={styles.gridMetrics}>
-        <div className={styles.metricCard}>
-          <div className={styles.metricIcon}>💰</div>
-          <div>
-            <p className={styles.metricLabel}>Umumiy savdo</p>
-            <h2 className={styles.metricValue}>{metrics.totalSales.toLocaleString()} UZS</h2>
+      {/* ── MAIN ── */}
+      <main className={styles.main}>
+        <header className={styles.topbar}>
+          <button className={styles.menuBtn} onClick={() => setSidebarOpen(true)}>☰</button>
+          <div className={styles.topbarTitle}>{navItems.find(n => n.id === view)?.label}</div>
+          <div className={styles.topbarRight}>
+            <span className={styles.topbarDate}>
+              {new Date().toLocaleDateString('uz-UZ', { day: '2-digit', month: 'short' })}
+            </span>
           </div>
-        </div>
+        </header>
 
-        <div className={styles.metricCard}>
-          <div className={styles.metricIcon}>📦</div>
-          <div>
-            <p className={styles.metricLabel}>Buyurtmalar soni</p>
-            <h2 className={styles.metricValue}>{metrics.ordersCount} ta</h2>
-          </div>
-        </div>
+        <div className={styles.content}>
+          {view === 'overview' && (
+            <OverviewView period={period} setPeriod={setPeriod} orders={orders} products={[]} setView={setView} />
+          )}
 
-        <div className={styles.metricCard}>
-          <div className={styles.metricIcon}>🍔</div>
-          <div>
-            <p className={styles.metricLabel}>Mahsulotlar</p>
-            <h2 className={styles.metricValue}>{metrics.productsCount} turda</h2>
-          </div>
-        </div>
-      </div>
+          {view === 'products' && (
+            <ProductView
+              products={products}
+              loading={productsLoading}
+              onAdd={openAdd}
+              onEdit={openEdit}
+              onDelete={deleteProduct}
+            />
+          )}
 
-      {/* БЫСТРЫЕ ДЕЙСТВИЯ */}
-      <div className={styles.quickActions}>
-        <h2>Tezkor harakatlar ⚡</h2>
-        <div className={styles.actionButtons}>
-          <button onClick={() => router.push('/dashboard/products')} className={styles.actionBtn}>
-            ➕ Yangi mahsulot qo'shish
-          </button>
-          <button onClick={() => router.push('/dashboard/orders')} className={styles.actionBtnSecondary}>
-            🛒 Buyurtmalarni ko'rish
-          </button>
+          {view === 'orders' && <OrdersView orders={orders} onAdvance={() => {}} />}
+
+          {view === 'settings' && <SettingsView store={store} onSaved={refetchStore} />}
         </div>
-      </div>
+      </main>
+
+      {modal && (
+        <ProductModal
+          form={form}
+          setForm={setForm}
+          editingId={editingId}
+          onSave={saveProduct}
+          onClose={() => setModal(false)}
+        />
+      )}
     </div>
   )
 }

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Fayl juda katta (max 2MB)' }, { status: 400 })
     }
 
-    const filename = `products/${randomUUID()}-${file.name}`
+    const filename = `public/${randomUUID()}-${file.name}`
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
